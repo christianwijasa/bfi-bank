@@ -182,7 +182,7 @@ Authorization: Bearer token
 
 | No. | Name   | Required | Data Type | Description                              |
 |-----|--------|----------|-----------|------------------------------------------|
-| 1.  | page   | FALSE    | Integer   | Page of products (Default 1)             |
+| 1.  | page   | FALSE    | Integer   | Page of contacts (Default 1)             |
 | 2.  | limit  | FALSE    | Integer   | Limit item to retrieve (Default 20)      |
 | 3.  | search | FALSE    | String    | Search by account number or contact name |
 
