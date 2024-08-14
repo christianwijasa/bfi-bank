@@ -1,5 +1,164 @@
 # API Design
 
+## User API
+
+### User Properties
+
+#### Users
+
+| No. | Name          | Data Type | Description               |
+|-----|---------------|-----------|---------------------------|
+| 1.  | user_id       | UUID      | User ID                   |
+| 2.  | name          | String    | User name                 |
+| 3.  | identity_card | String    | User identity card        |
+| 4.  | email         | String    | User email                |
+| 5.  | phone         | String    | User phone                |
+| 6.  | password      | String    | [Encrypted] User password |
+| 7.  | pin           | String    | [Encrypted] User PIN      |
+| 8.  | is_verified   | Boolean   | Is verified user          |
+| 9.  | created_at    | Timestamp | Time user created         |
+| 10. | updated_at    | Timestamp | Time user last updated    |
+| 11. | deleted_at    | Timestamp | Time user deleted         |
+
+### Register new user
+
+`[POST] /api/v1/user/register`
+
+#### Request
+
+| No. | Name          | Required | Data Type | Description        |
+|-----|---------------|----------|-----------|--------------------|
+| 1.  | name          | TRUE     | String    | User name          |
+| 2.  | identity_card | TRUE     | String    | User identity card |
+| 3.  | email         | TRUE     | String    | User email         |
+| 4.  | phone         | TRUE     | String    | User phone         |
+
+```json
+{
+  "name": "name",
+  "identity_card": "1234567890123456",
+  "email": "name@gmail.com",
+  "phone": "081234567890"
+}
+```
+
+#### Response
+
+```json
+{
+  "data": {
+    "user_id": "",
+    "name": "name",
+    "identity_card": "1234567890123456",
+    "email": "name@gmail.com",
+    "phone": "081234567890"
+  },
+  "error_code": "",
+  "message": ""
+}
+```
+
+#### Error Codes
+
+| No. | Name   | HTTP Status | Description   |
+|-----|--------|-------------|---------------|
+| 1.  | USR000 | 500         | Unknown error |
+| 2.  | USR002 | 400         | Bad request   |
+
+### Validate registered user (validate via dukcapil and create account if valid)
+
+`[POST] /api/v1/user/validate/{user_id}`
+
+#### Request
+
+| No. | Name          | Required | Data Type           | Description              |
+|-----|---------------|----------|---------------------|--------------------------|
+| 1.  | user_id       | TRUE     | String              | User ID                  |
+| 2.  | identity_card | TRUE     | Multipart/form-data | User identity card image |
+
+```json
+{
+  "name": "name",
+  "identity_card": "multipart/form-data"
+}
+```
+
+#### Response
+
+```json
+{
+  "data": {
+    "user_id": "",
+    "name": "name",
+    "identity_card": "1234567890123456",
+    "email": "name@gmail.com",
+    "phone": "081234567890",
+    "is_verified": true,
+    "account": {
+      "account_id": "",
+      "account_number": "0000 0000 0000",
+      "balance": 0,
+      "card": {
+        "card_id": "",
+        "card_number": "0000 0000 0000 0000",
+        "expiry": "02/27",
+        "is_active": true
+      }
+    }
+  },
+  "error_code": "",
+  "message": ""
+}
+```
+
+#### Error Codes
+
+| No. | Name   | HTTP Status | Description   |
+|-----|--------|-------------|---------------|
+| 1.  | USR000 | 500         | Unknown error |
+| 2.  | USR002 | 400         | Bad request   |
+
+### Login user
+
+`[POST] /api/v1/user/login`
+
+#### Request
+
+| No. | Name     | Required | Data Type | Description   |
+|-----|----------|----------|-----------|---------------|
+| 1.  | email    | TRUE     | String    | User email    |
+| 2.  | password | TRUE     | String    | User password |
+| 3.  | pin      | TRUE     | String    | User pin      |
+
+```json
+{
+  "email": "name@gmail.com",
+  "password": "",
+  "pin": ""
+}
+```
+
+#### Response
+
+```json
+{
+  "data": {
+    "access_token": "",
+    "refresh_token": "",
+    "expiry": ""
+  },
+  "error_code": "",
+  "message": ""
+}
+```
+
+#### Error codes
+
+| No. | Name   | HTTP Status | Description   |
+|-----|--------|-------------|---------------|
+| 1.  | USR000 | 500         | Unknown error |
+| 2.  | USR001 | 401         | Unauthorized  |
+
 ## Account API
 
 ### Account Properties
@@ -9,11 +168,12 @@
 | No. | Name           | Data Type | Description               |
 |-----|----------------|-----------|---------------------------|
 | 1.  | account_id     | UUID      | Account ID                |
-| 2.  | account_number | String    | Account number            |
-| 3.  | balance        | Float64   | Balance of the account    |
-| 4.  | created_at     | Timestamp | Time account created      |
-| 5.  | updated_at     | Timestamp | Time account last updated |
-| 6.  | deleted_at     | Timestamp | Time account deleted      |
+| 2.  | fk_user        | UUID      | Foreign key of user       |
+| 3.  | account_number | String    | Account number            |
+| 4.  | balance        | Float64   | Balance of the account    |
+| 5.  | created_at     | Timestamp | Time account created      |
+| 6.  | updated_at     | Timestamp | Time account last updated |
+| 7.  | deleted_at     | Timestamp | Time account deleted      |
 
 #### Cards
 
@@ -56,22 +216,12 @@ Authorization: Bearer token
 }
 ```
 
-#### Error Response
-
-```json
-{
-  "data": null,
-  "error_code": "",
-  "message": ""
-}
-```
-
 #### Error Codes
 
 | No. | Name   | HTTP Status | Description   |
 |-----|--------|-------------|---------------|
 | 1.  | ACC000 | 500         | Unknown error |
-| 2.  | ACC001 | 401         | Unauthorized  |
+| 2.  | USR001 | 401         | Unauthorized  |
 
 ### Create new card
 
@@ -95,23 +245,13 @@ Authorization: Bearer token
 }
 ```
 
-#### Error Response
-
-```json
-{
-  "data": null,
-  "error_code": "",
-  "message": ""
-}
-```
-
 #### Error Codes
 
-| No. | Name   | HTTP Status | Description                  |
-|-----|--------|-------------|------------------------------|
-| 1.  | ACC000 | 500         | Unknown error                |
-| 2.  | ACC001 | 401         | Unauthorized                 |
-| 3.  | ACC100 | 400         | There's still an active card |
+| No. | Name   | HTTP Status | Description             |
+|-----|--------|-------------|-------------------------|
+| 1.  | ACC000 | 500         | Unknown error           |
+| 2.  | USR001 | 401         | Unauthorized            |
+| 3.  | ACC100 | 400         | There is an active card |
 
 ### Deactivate card
 
@@ -138,22 +278,12 @@ Authorization: Bearer token
 }
 ```
 
-#### Error Response
-
-```json
-{
-  "data": null,
-  "error_code": "",
-  "message": ""
-}
-```
-
 #### Error Codes
 
 | No. | Name   | HTTP Status | Description     |
 |-----|--------|-------------|-----------------|
 | 1.  | ACC000 | 500         | Unknown error   |
-| 2.  | ACC001 | 401         | Unauthorized    |
+| 2.  | USR001 | 401         | Unauthorized    |
 | 3.  | ACC200 | 400         | Invalid card ID |
 
 ## Contact API
@@ -164,10 +294,10 @@ Authorization: Bearer token
 
 | No. | Name           | Data Type | Description               |
 |-----|----------------|-----------|---------------------------|
-| 1.  | contact_id     | UUID      | Contact's ID              |
-| 2.  | account_number | String    | Contact's account number  |
-| 3.  | bank_id        | UUID      | Bank contact's ID         |
-| 4.  | contact_name   | String    | Contact's name            |
+| 1.  | contact_id     | UUID      | Contact ID                |
+| 2.  | account_number | String    | Contact account number    |
+| 3.  | bank_id        | UUID      | Bank contact ID           |
+| 4.  | contact_name   | String    | Contact name              |
 | 5.  | created_at     | Timestamp | Time Contact created      |
 | 6.  | updated_at     | Timestamp | Time Contact last updated |
 | 7.  | deleted_at     | Timestamp | Time Contact deleted      |
@@ -212,8 +342,6 @@ Authorization: Bearer token
 }
 ```
 
-#### Error Response
-
 ```json
 {
   "data": null,
@@ -227,7 +355,7 @@ Authorization: Bearer token
 | No. | Name   | HTTP Status | Description   |
 |-----|--------|-------------|---------------|
 | 1.  | CNT000 | 500         | Unknown error |
-| 2.  | ACC001 | 401         | Unauthorized  |
+| 2.  | USR001 | 401         | Unauthorized  |
 
 ### Get contact by ID
 
@@ -259,8 +387,6 @@ Authorization: Bearer token
 }
 ```
 
-#### Error Response
-
 ```json
 {
   "data": null,
@@ -274,7 +400,7 @@ Authorization: Bearer token
 | No. | Name   | HTTP Status | Description       |
 |-----|--------|-------------|-------------------|
 | 1.  | CNT000 | 500         | Unknown error     |
-| 2.  | ACC001 | 401         | Unauthorized      |
+| 2.  | USR001 | 401         | Unauthorized      |
 | 3.  | CNT200 | 404         | Contact not found |
 
 ### Create contact
@@ -285,11 +411,11 @@ Authorization: Bearer token
 
 Authorization: Bearer token
 
-| No. | Name           | Required | Data Type | Description      |
-|-----|----------------|----------|-----------|------------------|
-| 1.  | account_number | TRUE     | String    | Account's number |
-| 2.  | bank_id        | TRUE     | String    | Bank's ID        |
-| 3.  | contact_name   | TRUE     | String    | Contact's name   |
+| No. | Name           | Required | Data Type | Description                                                                |
+|-----|----------------|----------|-----------|----------------------------------------------------------------------------|
+| 1.  | account_number | TRUE     | String    | Account number                                                             |
+| 2.  | bank_id        | TRUE     | String    | Bank ID                                                                    |
+| 3.  | contact_name   | FALSE    | String    | Contact name (optional). Will use response from external bank API if empty |
 
 ```json
 {
@@ -317,8 +443,6 @@ Authorization: Bearer token
 }
 ```
 
-#### Error Response
-
 ```json
 {
   "data": null,
@@ -332,7 +456,7 @@ Authorization: Bearer token
 | No. | Name   | HTTP Status | Description                                  |
 |-----|--------|-------------|----------------------------------------------|
 | 1.  | CNT000 | 500         | Unknown error                                |
-| 2.  | ACC001 | 401         | Unauthorized                                 |
+| 2.  | USR001 | 401         | Unauthorized                                 |
 | 3.  | CNT300 | 400         | Contact not registered in the requested bank |
 
 ### Delete Contact
@@ -343,9 +467,9 @@ Authorization: Bearer token
 
 Authorization: Bearer token
 
-| No. | Name       | Type | Required | Data Type | Description            |
-|-----|------------|------|----------|-----------|------------------------|
-| 1.  | contact_id | Path | TRUE     | UUID      | Contact's ID to delete |
+| No. | Name       | Type | Required | Data Type | Description          |
+|-----|------------|------|----------|-----------|----------------------|
+| 1.  | contact_id | Path | TRUE     | UUID      | Contact ID to delete |
 
 ```json
 {
@@ -363,8 +487,6 @@ Authorization: Bearer token
 }
 ```
 
-#### Error Response
-
 ```json
 {
   "data": null,
@@ -378,5 +500,152 @@ Authorization: Bearer token
 | No. | Name   | HTTP Status | Description       |
 |-----|--------|-------------|-------------------|
 | 1.  | CNT000 | 500         | Unknown error     |
-| 2.  | ACC001 | 401         | Unauthorized      |
+| 2.  | USR001 | 401         | Unauthorized      |
 | 3.  | CNT400 | 400         | Contact not found |
+
+## Transaction API
+
+### Transaction Properties
+
+#### Transactions
+
+| No. | Name                    | Data Type | Description                                |
+|-----|-------------------------|-----------|--------------------------------------------|
+| 1.  | transaction_id          | UUID      | Transcation ID                             |
+| 2.  | sender_account_number   | String    | Sender account number                      |
+| 3.  | receiver_account_number | String    | Receiver account number                    |
+| 4.  | receiver_bank_id        | String    | Receiver bank ID                           |
+| 5.  | amount                  | Integer   | Amount to transfer                         |
+| 6.  | description             | String    | Description of the transaction             |
+| 7.  | status                  | String    | Status of the transaction                  |
+| 8.  | transfered_at           | Timestamp | Time transaction transfered to sender bank |
+| 9.  | created_at              | Timestamp | Time transaction created                   |
+| 10. | updated_at              | Timestamp | Time transaction last updated              |
+| 11. | deleted_at              | Timestamp | Time transaction deleted                   |
+
+### Initiate transaction
+
+`[POST] /api/v1/transaction`
+
+#### Request
+
+Authorization: Bearer token
+
+| No. | Name           | Required | Data Type | Description                     |
+|-----|----------------|----------|-----------|---------------------------------|
+| 1.  | account_number | TRUE     | String    | Account number receiver         |
+| 2.  | bank_id        | TRUE     | String    | Bank receiver                   |
+| 3.  | amount         | TRUE     | Integer   | Bank ID                         |
+| 4.  | description    | FALSE    | String    | Description of the transaction  |
+| 5.  | pin            | TRUE     | String    | To validate request transaction |
+
+```json
+{
+  "account_number": "000 000 000",
+  "bank_id": "BCA",
+  "amount": "100000",
+  "description": "",
+  "pin": ""
+}
+```
+
+#### Response
+```json
+{
+  "transaction_id": "uuid",
+  "status": "Pending"
+}
+```
+
+#### Error Codes
+
+| No. | Name   | HTTP Status | Description                           |
+|-----|--------|-------------|---------------------------------------|
+| 1.  | TRS000 | 500         | Unknown error                         |
+| 2.  | USR001 | 401         | Unauthorized                          |
+| 3.  | TRS001 | 400         | Bad requet : insufficient amount      |
+| 4.  | TRS002 | 400         | Bad requet : invalid receiver account |
+
+### Check transaction status
+
+`[GET] /api/v1/transaction/{transactionID}`
+
+#### Request
+
+Authorization: Bearer token
+
+| No. | Name          | Required | Data Type | Description    |
+|-----|---------------|----------|-----------|----------------|
+| 1.  | transactionID | TRUE     | String    | Transaction ID |
+
+#### Response
+
+```json
+{
+  "transaction_id": "uuid",
+  "account_number": "000 000 000",
+  "bank_id": "BCA",
+  "amount": "100000",
+  "description": "",
+  "status": "Pending",
+  "transfered_at": "",
+  "created_at": ""
+}
+```
+
+#### Error Codes
+
+| No. | Name   | HTTP Status | Description                                                                                       |
+|-----|--------|-------------|---------------------------------------------------------------------------------------------------|
+| 1.  | TRS000 | 500         | Unknown error                                                                                     |
+| 2.  | USR001 | 401         | Unauthorized                                                                                      |
+| 3.  | TRS100 | 404         | Transaction ID not found (if transaction id is invalid or the transaction is not owned by sender) |
+
+### Get transaction history list
+
+`[GET] /api/v1/transactions`
+
+#### Request
+
+Authorization: Bearer token
+
+| No. | Name       | Required | Data Type | Description                         |
+|-----|------------|----------|-----------|-------------------------------------|
+| 1.  | page       | FALSE    | Integer   | Page of transaction (Default 1)     |
+| 2.  | limit      | FALSE    | Integer   | Limit item to retrieve (Default 20) |
+| 3.  | start_date | FALSE    | String    | Filter by start date                |
+| 4.  | end_date   | FALSE    | String    | Filter by end date                  |
+
+#### Response
+
+```json
+{
+  "data": {
+    "transactions": [
+      {
+        "transaction_id": "uuid",
+        "account_number": "000 000 000",
+        "bank_id": "BCA",
+        "amount": "100000",
+        "description": "",
+        "status": "Pending",
+        "transfered_at": "",
+        "created_at": ""
+      }
+    ],
+    "page": 1,
+    "limit": 20,
+    "total": 100,
+    "last": false
+  },
+  "error_code": "",
+  "message": ""
+}
+```
+
+#### Error Codes
+
+| No. | Name   | HTTP Status | Description   |
+|-----|--------|-------------|---------------|
+| 1.  | TRS000 | 500         | Unknown error |
+| 2.  | USR001 | 401         | Unauthorized  |
