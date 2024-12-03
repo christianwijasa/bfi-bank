@@ -649,3 +649,110 @@ Authorization: Bearer token
 |-----|--------|-------------|---------------|
 | 1.  | TRS000 | 500         | Unknown error |
 | 2.  | USR001 | 401         | Unauthorized  |
+
+---
+
+# System Design
+
+![system-design](system-design.png)
+
+---
+
+# Database Design
+
+## Table
+```sql
+CREATE TABLE users
+(
+  user_id         UUID NOT NULL,
+  name            TEXT NOT NULL,
+  identity_card   TEXT NOT NULL,
+  email           TEXT NOT NULL,
+  phone           TEXT NOT NULL,
+  password        TEXT NOT NULL,
+  pin             TEXT NOT NULL,
+  is_verified     BOOLEAN DEFAULT FALSE,
+  created_at      TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at      TIMESTAMP WITH TIME ZONE,
+  deleted_at      TIMESTAMP WITH TIME ZONE,
+  deleted         BOOLEAN DEFAULT FALSE,
+  
+  CONSTRAINT users_user_id_pkey PRIMARY KEY (user_id)
+);
+CREATE INDEX IF NOT EXISTS users__index_query_by_identity_card ON users (identity_card);
+CREATE INDEX IF NOT EXISTS users__index_query_by_email ON users (email);
+
+CREATE TABLE accounts
+(
+  account_id      UUID NOT NULL,
+  fk_user         UUID NOT NULL,
+  account_number  TEXT NOT NULL,
+  balance         FLOAT DEFAULT 0,
+  created_at      TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at      TIMESTAMP WITH TIME ZONE,
+  deleted_at      TIMESTAMP WITH TIME ZONE,
+  deleted         BOOLEAN DEFAULT FALSE,
+
+  CONSTRAINT accounts_account_id_pkey PRIMARY KEY (account_id),
+  CONSTRAINT accounts_fk_user_fkey FOREIGN KEY (fk_user) REFERENCES users(user_id)
+);
+CREATE INDEX IF NOT EXISTS accounts__index_query_by_fk_user ON accounts (fk_user);
+CREATE UNIQUE INDEX IF NOT EXISTS unique_accounts__account_number ON accounts (account_number);
+
+CREATE TABLE cards
+(
+  card_id     UUID NOT NULL,
+  fk_account  UUID NOT NULL,
+  card_number TEXT NOT NULL,
+  expiry      TEXT NOT NULL,
+  is_active   BOOLEAN DEFAULT FALSE,
+  created_at  TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at  TIMESTAMP WITH TIME ZONE,
+  deleted_at  TIMESTAMP WITH TIME ZONE,
+  deleted     BOOLEAN DEFAULT FALSE,
+
+  CONSTRAINT cards_card_id_pkey PRIMARY KEY (card_id),
+  CONSTRAINT cards_fk_account_fkey FOREIGN KEY (fk_account) REFERENCES accounts(fk_account)
+);
+CREATE INDEX IF NOT EXISTS cards__index_query_by_fk_account ON cards (fk_account);
+CREATE UNIQUE INDEX IF NOT EXISTS unique_cards__card_number ON cards (card_number);
+
+CREATE TABLE contacts
+(
+  contact_id      UUID NOT NULL,
+  fk_user         UUID NOT NULL,
+  account_number  TEXT NOT NULL,
+  bank_id         UUID NOT NULL,
+  contact_name    TEXT NOT NULL,
+  created_at      TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at      TIMESTAMP WITH TIME ZONE,
+  deleted_at      TIMESTAMP WITH TIME ZONE,
+  deleted         BOOLEAN DEFAULT FALSE,
+
+  CONSTRAINT contacts_contact_id_pkey PRIMARY KEY (contact_id),
+  CONSTRAINT contacts_fk_user_fkey FOREIGN KEY (fk_user) REFERENCES users(user_id)
+)
+CREATE INDEX IF NOT EXISTS contacts__index_query_by_fk_user ON contacts (fk_user);
+CREATE INDEX IF NOT EXISTS contacts__index_query_by_account_number ON contacts (account_number);
+CREATE INDEX IF NOT EXISTS contacts__index_query_by_contact_name ON contacts (contact_name);
+
+CREATE TABLE transactions
+(
+  transaction_id          UUID NOT NULL,
+  sender_account_number   TEXT NOT NULL,
+  receiver_account_number TEXT NOT NULL,
+  receiver_bank_id        UUID NOT NULL,
+  amount                  INTEGER NOT NULL,
+  description             TEXT,
+  status                  TEXT NOT NULL,
+  transfered_at           TIMESTAMP WITH TIME ZONE,
+  created_at              TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at              TIMESTAMP WITH TIME ZONE,
+  deleted_at              TIMESTAMP WITH TIME ZONE,
+  deleted                 BOOLEAN DEFAULT FALSE,
+
+  CONSTRAINT transactions_transaction_id_pkey PRIMARY KEY (transaction_id)
+)
+CREATE INDEX IF NOT EXISTS transactions__index_query_by_sender_account_number ON transactions (sender_account_number);
+CREATE INDEX IF NOT EXISTS transactions__index_query_by_receiver_account_number ON transactions (receiver_account_number);
+```
