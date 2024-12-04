@@ -654,7 +654,7 @@ Authorization: Bearer token
 
 # System Design
 
-![system-design](system-design.png)
+![system-design](system-design-orchestrator.png)
 
 ---
 
