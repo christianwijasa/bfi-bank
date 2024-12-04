@@ -660,6 +660,9 @@ Authorization: Bearer token
 
 # Database Design
 
+## ERD
+![erd](erd.png)
+
 ## Table
 ```sql
 CREATE TABLE users
